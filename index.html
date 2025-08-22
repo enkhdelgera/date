@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Нууцны болзоо — Баагийд</title>
+  <meta name="description" content="Нууц нэгнээс Баагийд: 8/23-ны 14:00 цагт болзох уу?" />
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f172a;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#f472b6;
+      --accent2:#60a5fa;
+      --yes:#22c55e;
+      --no:#ef4444;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1000px 600px at 15% 10%, #1f2937 0%, var(--bg) 60%),
+                  radial-gradient(800px 400px at 85% 85%, #111827 0%, var(--bg) 60%);
+      overflow:hidden;
+    }
+    /* floating hearts background */
+    .hearts{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+    .heart{
+      position:absolute;
+      width:18px;height:18px;
+      transform: translate(-50%,-50%) rotate(45deg);
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      opacity:.7;filter:blur(.15px);
+      animation: floatUp linear forwards;
+      box-shadow: 0 0 12px rgba(255,255,255,.15);
+    }
+    .heart::before,.heart::after{
+      content:"";position:absolute;width:18px;height:18px;border-radius:50%;
+      background:inherit;
+    }
+    .heart::before{left:-9px;top:0}
+    .heart::after{top:-9px;left:0}
+    @keyframes floatUp{
+      from{transform:translate(var(--x,50vw),105vh) rotate(45deg);opacity:.0}
+      10%{opacity:.7}
+      to{transform:translate(var(--x,50vw),-10vh) rotate(45deg);opacity:0}
+    }
+
+    .scene{
+      position:relative;height:100%;display:grid;place-items:center;padding:24px;z-index:1;
+    }
+    .card{
+      position:relative;
+      width:clamp(320px, 92vw, 620px);
+      border-radius:28px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      backdrop-filter: blur(12px);
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 24px 60px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,0.06);
+      padding:32px 28px 36px;
+      text-align:center;
+      overflow:hidden;
+    }
+    .tag{
+      display:inline-flex;gap:8px;align-items:center;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      padding:6px 12px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.1em;
+      text-transform:uppercase;box-shadow:0 8px 20px rgba(0,0,0,.35);color:#fff;
+    }
+    h1{margin:16px 0 8px;font-size:clamp(24px, 4vw, 40px);line-height:1.1}
+    p.lead{margin:0 0 18px;color:var(--muted);font-size:clamp(14px,2.6vw,18px)}
+    .question{font-size:clamp(18px,3.5vw,22px);margin:18px 0 22px;color:#fff}
+    .buttons{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;position:relative;min-height:64px}
+    .btn{
+      border:none;border-radius:999px;padding:14px 22px;font-size:16px;font-weight:800;
+      cursor:pointer;transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+      box-shadow: 0 8px 20px rgba(0,0,0,.3);user-select:none;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn.yes{background:linear-gradient(90deg,#16a34a,var(--yes));color:#fff}
+    .btn.no{
+      background:linear-gradient(90deg,#ef4444,var(--no));color:#fff;
+      position:absolute;left:50%;top:0;transform:translate(-50%,0);
+    }
+    .hint{margin-top:12px;color:var(--muted);font-size:13px}
+
+    /* success modal */
+    .modal{
+      position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.45);z-index:30;
+    }
+    .modal.show{display:grid;animation: fadeIn .15s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal-card{
+      background:#0b1328;border:1px solid rgba(255,255,255,.12);border-radius:22px;
+      padding:26px;max-width:520px;width:92vw;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.55);
+    }
+    .modal h2{margin:6px 0 6px;font-size:28px}
+    .modal p{margin:0;color:var(--muted)}
+    .confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
+    .footer{margin-top:18px;font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="hearts" id="hearts"></div>
+  <div class="scene">
+    <div class="card" id="card">
+      <div class="tag">Нууц нэгнээс · Баагийд</div>
+      <h1>Сайн уу, Баагий 💌</h1>
+      <p class="lead">Нууцхан бахархагч чинь нэг хүсэлттэй ирлээ…</p>
+      <div class="question">8/23-ны <strong>14:00</strong> цагт болзох уу?</div>
+
+      <div class="buttons">
+        <button class="btn yes" id="yesBtn">Тийм ээ ✅</button>
+        <button class="btn no" id="noBtn" aria-label="Үгүй">Үгүй ❌</button>
+      </div>
+      <div class="hint">* Жаахан эрхэлмээр байвал “Үгүй” дээр дараад үз дээ… даруулж үзээрэй 😅</div>
+
+      <div class="footer">Болзоо: 2025‑08‑23 14:00 · Байршлыг дараа нь илгээнэ 📍</div>
+    </div>
+  </div>
+
+  <!-- success modal + confetti -->
+  <canvas class="confetti" id="confetti"></canvas>
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <h2>Амжилттай! 🎉</h2>
+      <p>Тэгвэл болзоонд уулзъя! Чамайг тэсэн ядан хүлээнэ. 💖</p>
+    </div>
+  </div>
+
+  <script>
+    // floating hearts
+    (function makeHearts(){
+      const wrap = document.getElementById('hearts');
+      const COUNT = 22;
+      for(let i=0;i<COUNT;i++){
+        const h = document.createElement('div');
+        h.className='heart';
+        h.style.setProperty('--x', Math.random()*100+'vw');
+        h.style.left = Math.random()*100+'%';
+        h.style.animationDuration = (10 + Math.random()*12) + 's';
+        h.style.animationDelay = (Math.random()*6) + 's';
+        wrap.appendChild(h);
+      }
+      setInterval(()=>{
+        const h = document.createElement('div');
+        h.className='heart';
+        h.style.setProperty('--x', Math.random()*100+'vw');
+        h.style.left = Math.random()*100+'%';
+        h.style.animationDuration = (9 + Math.random()*12) + 's';
+        wrap.appendChild(h);
+        setTimeout(()=>h.remove(), 25000);
+      }, 1200);
+    })();
+
+    // "No" button evades cursor
+    (function noButton(){
+      const btn = document.getElementById('noBtn');
+      const container = document.getElementById('card');
+      function moveAway(){
+        const rectC = container.getBoundingClientRect();
+        const rectB = btn.getBoundingClientRect();
+        const padding = 8;
+        const maxX = rectC.width - rectB.width - padding*2;
+        const maxY = rectC.height - rectB.height - 90; // leave space at bottom
+        const x = Math.max(padding, Math.min(maxX, Math.random()*maxX));
+        const y = Math.max(12, Math.min(maxY, Math.random()*maxY));
+        btn.style.transition='transform .12s ease';
+        btn.style.transform = `translate(${x - (rectB.left-rectC.left)}px, ${y - (rectB.top-rectC.top)}px)`;
+      }
+      ['mouseenter','touchstart','pointerenter','click'].forEach(ev=>{
+        btn.addEventListener(ev, e=>{
+          e.preventDefault();
+          moveAway();
+        }, {passive:false});
+      });
+      // occasional playful wiggle
+      setInterval(()=>moveAway(), 4000);
+    })();
+
+    // Yes button -> show modal + confetti
+    (function yesButton(){
+      const yesBtn = document.getElementById('yesBtn');
+      const modal = document.getElementById('modal');
+      const confetti = document.getElementById('confetti');
+      const ctx = confetti.getContext('2d');
+      let W, H, pieces=[], anim;
+
+      function resize(){
+        W = confetti.width = window.innerWidth;
+        H = confetti.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize); resize();
+
+      function spawn(n=180){
+        pieces = Array.from({length:n}).map(()=> ({
+          x: Math.random()*W,
+          y: -20 - Math.random()*H/3,
+          r: 4 + Math.random()*4,
+          s: 2 + Math.random()*3,
+          a: Math.random()*Math.PI*2,
+          tilt: Math.random()*Math.PI,
+          rot: (Math.random()*2-1)*0.1
+        }));
+      }
+      function draw(){
+        ctx.clearRect(0,0,W,H);
+        pieces.forEach(p=>{
+          p.y += p.s;
+          p.x += Math.sin(p.a += 0.03) * 2;
+          p.tilt += p.rot;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.tilt);
+          ctx.fillStyle = ['#fde047','#60a5fa','#f472b6','#34d399','#fca5a5','#c4b5fd'][Math.floor(Math.random()*6)];
+          ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r*1.5);
+          ctx.restore();
+        });
+        pieces = pieces.filter(p=>p.y < H + 20);
+        if(pieces.length) anim = requestAnimationFrame(draw);
+      }
+
+      yesBtn.addEventListener('click', ()=>{
+        modal.classList.add('show');
+        spawn(200);
+        cancelAnimationFrame(anim);
+        draw();
+        setTimeout(()=>{
+          modal.classList.remove('show');
+        }, 2800);
+      });
+    })();
+  </script>
+</body>
+</html>
